@@ -48,9 +48,10 @@
             <ion-button 
             type="submit"
             color="primary" 
+            (click)="onLogin()" 
             expand="block"
             [disabled]="f.invalid">
-              {{ isLogin ? 'Login' : 'Signup' }}
+              Login
             </ion-button>
         </ion-col>
       </ion-row>

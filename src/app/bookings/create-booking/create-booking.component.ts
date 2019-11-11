@@ -31,26 +31,23 @@ export class CreateBookingComponent implements OnInit {
     }
   }
 
-  onCancel() {
+  onCancel(){
     this.modalCtrl.dismiss(null, 'cancel');
   }
 
   onBookPlace() {
     if (!this.form.valid || !this.datesValid) {
       return;
+    } else {
+
     }
-    this.modalCtrl.dismiss(
-      {
-        bookingData: {
-          firstName: this.form.value['first-name'],
-          lastName: this.form.value['last-name'],
-          guestNumber: +this.form.value['guest-number'],
-          startDate: new Date(this.form.value['date-from']),
-          endDate: new Date(this.form.value['date-to']),
-        }
-      },
-      'confirm'
-    );
+    this.modalCtrl.dismiss({bookingData:{
+      firstName: this.form.value['first-name'],
+      lastName: this.form.value['last-name'],
+      guestNmber: +this.form.value['guest-number'],
+      startDate: new Date(this.form.value['date-from']),
+      endDate: new Date(this.form.value['date-to']),
+    }}, 'confirm');
   }
 
   datesValid() {

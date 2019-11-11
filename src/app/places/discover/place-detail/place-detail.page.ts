@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { NavController, ModalController, ActionSheetController, LoadingController, AlertController } from '@ionic/angular';
+import { NavController, ModalController, ActionSheetController, LoadingController } from '@ionic/angular';
 import { CreateBookingComponent } from '../../../bookings/create-booking/create-booking.component';
 import { Place } from '../../place.model';
 import { PlacesService } from '../../places.service';
@@ -8,8 +8,6 @@ import { Subscription } from 'rxjs';
 import { BookingService } from 'src/app/bookings/booking.service';
 import { loadingController } from '@ionic/core';
 import { AuthService } from '../../../auth/auth.service';
-import { MapModalComponent } from '../../../shared/map-modal/map-modal.component';
-import { switchMap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-place-detail',
@@ -21,7 +19,6 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
   place: Place;
   private placeSub: Subscription;
   isBookable = false;
-  isLoading = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,9 +28,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     private actionSheetCtrl: ActionSheetController,
     private bookingService: BookingService,
     private laodingCtrl: LoadingController,
-    private authService: AuthService,
-    private alertCtrl: AlertController,
-    private router: Router
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -42,36 +37,11 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         this.navCtrl.navigateBack('/places/tabs/discover');
         return;
       }
-      this.isLoading = true;
-      let fetchedUserId: string;
-      this.authService.userId
-      .pipe(
-        take(1),
-        switchMap(userId => {
-        if (!userId) {
-          throw new Error('No user id found');
-        }
-        fetchedUserId = userId;
-        return this.placesService.getPlace(paramMap.get('placeId'));
-      })).subscribe(place => {
+      this.placeSub = this.placesService
+        .getPlace(paramMap.get('placeId'))
+        .subscribe(place => {
           this.place = place;
-          this.isBookable = place.userId !== fetchedUserId;
-          this.isLoading = false;
-        }, error => {
-          this.alertCtrl.create(
-            {
-              header: 'An error occurred!',
-              message: 'Could not load a place.',
-              buttons: [
-                {
-                  text: 'Ok',
-                  handler: () => {
-                   this.router.navigate(['/places/tabs/discover']);
-                  }
-                }
-              ]
-            }
-          ).then(alertEl => alertEl.present());
+          this.isBookable = place.userId !== this.authService.userId;
         });
     });
   }
@@ -107,21 +77,22 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     this.modalCtrl
     .create({
       component: CreateBookingComponent,
-      componentProps: { selectedPlace: this.place, selectedMode: mode }
+      componentProps: {
+        selectedPlace: this.place,
+        selectedMode: mode
+      }
     })
     .then(modalEl => {
       modalEl.present();
       return modalEl.onDidDismiss();
     })
     .then(resultData => {
-      console.log(resultData.data, resultData.role);
       if (resultData.role === 'confirm') {
         this.laodingCtrl.create({
           message: 'Booking place...'
         }).then(loadingEl => {
           loadingEl.present();
           const data = resultData.data.bookingData;
-          console.log(data);
           this.bookingService.addBoking(
             this.place.id,
             this.place.title,
@@ -139,20 +110,8 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     });
   }
 
-  onShowFullMap() {
-    this.modalCtrl.create({component: MapModalComponent, componentProps: {
-      center: {lat: this.place.location.lat, lng: this.place.location.lng},
-      selectable: false,
-      closeButtonText: 'Close',
-      title: this.place.location.address
-    }})
-    .then(modalEl => {
-      modalEl.present();
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.placeSub) {
+  ngOnDestroy(){
+    if (this.placeSub){
       this.placeSub.unsubscribe();
     }
   }

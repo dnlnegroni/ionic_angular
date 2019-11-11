@@ -3,15 +3,12 @@
     <ion-back-button slot="start">
       <ion-back-button defaultHref="/places/tabs/discover"></ion-back-button>
     </ion-back-button>
-    <ion-title>{{ isLoading ? 'Loading' : place.title }}</ion-title>
+    <ion-title>Place Detail</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <div text- center>
-    <ion-spinner color="primary" *ngIf="isLoading"></ion-spinner>
-  </div>
-  <ion-grid no-padding *ngIf="!isLoading">
+  <ion-grid no-padding>
     <ion-row>
       <ion-col size-sm="6" offset-sm="3" no-padding>
         <ion-img [src]="place.imageUrl"></ion-img>
@@ -20,16 +17,6 @@
     <ion-row>
       <ion-col size-sm="6" offset-sm="3">
         <p> {{ place.description }} </p>
-      </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col size-sm="6" offset-sm="3" padding text-center>
-        <p>{{ place.location.address }}</p>
-      </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col size-sm="6" offset-sm="3" no-padding>
-        <ion-img role="button" (click)="onShowFullMap()" class="location-image" [src]="place.location.staticMapImagetUrl"></ion-img>
       </ion-col>
     </ion-row>
     <ion-row *ngIf="isBookable">
