@@ -3,7 +3,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Place } from '../../place.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PlacesService } from '../../places.service';
-import { NavController, LoadingController } from '@ionic/angular';
+import { NavController, LoadingController, AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -13,7 +13,9 @@ import { Subscription } from 'rxjs';
 })
 export class EditOfferPage implements OnInit, OnDestroy {
   place: Place;
+  placeId: string;
   form: FormGroup;
+  isLoading = false;
   private placeSub: Subscription;
 
   constructor(
@@ -21,15 +23,18 @@ export class EditOfferPage implements OnInit, OnDestroy {
     private placesService: PlacesService,
     private navCtrl: NavController,
     private router: Router,
-    private loadingCtrl: LoadingController
+    private loadingCtrl: LoadingController,
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe(paramMap =>{
-      if(!paramMap.has('placeId')){
+    this.route.paramMap.subscribe(paramMap => {
+      if (!paramMap.has('placeId')) {
         this.navCtrl.navigateBack('/places/tabs/offers');
         return;
       }
+      this.placeId = paramMap.get('placeId');
+      this.isLoading = true;
       this.placeSub = this.placesService.getPlace(paramMap.get('placeId')).subscribe(place => {
         this.place = place;
         this.form = new FormGroup({
@@ -41,6 +46,24 @@ export class EditOfferPage implements OnInit, OnDestroy {
             updateOn: 'blur',
             validators: [Validators.required, Validators.maxLength(180)]
           })
+        });
+        this.isLoading = false;
+      }, error => {
+        this.alertCtrl.create(
+          {
+            header: 'An error occurred!',
+            message: 'Place could not be fetched. Please try again later!',
+            buttons: [
+              {
+                text: 'Ok',
+                handler: () => {
+                  this.router.navigate(['/places/tabs/offers']);
+                }
+              }
+            ]
+          }
+        ).then(alertEl => {
+          alertEl.present();
         });
       });
     });
@@ -56,7 +79,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
       loadingEl.present();
       this.placesService.updatePlace(
         this.place.id,
-        this.form.value.tile,
+        this.form.value.title,
         this.form.value.description
       ).subscribe(() => {
         loadingEl.dismiss();
@@ -67,7 +90,7 @@ export class EditOfferPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.placeSub){
+    if (this.placeSub) {
       return this.placeSub.unsubscribe();
     }
   }

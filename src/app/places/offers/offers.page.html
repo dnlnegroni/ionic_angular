@@ -21,18 +21,17 @@
         </div>
         <div text-center *ngIf="!isLoading && offers.length <= 0">
           <p>No offers found. Please create one first!</p>
-          <ion-button color="primary" router-link="/places/tabs/offers/new">Offer New Place</ion-button>
+          <ion-button color="primary" routerLink="/places/tabs/offers/new">Offer New Place</ion-button>
         </div>
         <ion-list *ngIf="!isLoading && offers.length > 0">
           <ion-item-sliding *ngFor="let offer of offers" #slidingItem>
              <app-offer-item [offer]="offer"> </app-offer-item>
-            <ion-item-options>
+            <ion-item-options side="end">
               <ion-item-option color="primary" (click)="onEdit(offer.id, slidingItem)">
                 <ion-icon name="create" slot="icon-only"></ion-icon>
               </ion-item-option>
             </ion-item-options>
           </ion-item-sliding>
-          
         </ion-list>
       </ion-col>
     </ion-row>
